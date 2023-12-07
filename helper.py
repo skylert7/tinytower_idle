@@ -1,5 +1,7 @@
 import cv2
 import pyautogui
+
+pyautogui.FAILSAFE = False
 import numpy as np
 from PIL import Image
 import time
@@ -38,26 +40,40 @@ size = (0, 0)
 GAME_REGION = (0, 0, 0, 0)
 
 
-def get_screenshot():
+def get_screenshot(tinytower_game_screen=True):
     global size, GAME_REGION
-    if size[1] > 900:
-        GAME_REGION_MACOS = [i for i in GAME_REGION]
+    if tinytower_game_screen:
+        if size[1] > 900:
+            GAME_REGION_MACOS = [i for i in GAME_REGION]
+        else:
+            GAME_REGION_MACOS = [i * 2 for i in GAME_REGION]  # * 2 because of macos
+
+        # logger.info(f'Started at {pyautogui.position()}')
+        # Capture a screenshot
+        logger.info(f'Taking screenshot for region {GAME_REGION_MACOS}')
+        screenshot = pyautogui.screenshot(region=GAME_REGION_MACOS)
+        screenshot = cv2.cvtColor(np.array(screenshot), cv2.COLOR_BGR2GRAY)
+        # screenshot_monitor = pyautogui.screenshot()
+        # screenshot_monitor = cv2.cvtColor(np.array(screenshot_monitor), cv2.COLOR_BGR2GRAY)
+
+        # logger.info(f'Screenshot size: {screenshot.shape}')
+
+        # # Display the result
+        # cv2.imshow('Screenshot Result', screenshot)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
+        # cv2.imwrite('screnshot_vanilla.jpg', screenshot)
+        # cv2.imwrite('screenshot_monitor.jpg', screenshot_monitor)
     else:
-        GAME_REGION_MACOS = [i * 2 for i in GAME_REGION] # * 2 because of macos
-
-    # logger.info(f'Started at {pyautogui.position()}')
-    # Capture a screenshot
-    logger.info(f'Taking screenshot for region {GAME_REGION_MACOS}')
-    screenshot = pyautogui.screenshot(region=GAME_REGION_MACOS)
-    screenshot = cv2.cvtColor(np.array(screenshot), cv2.COLOR_BGR2GRAY)
-    # logger.info(f'Screenshot size: {screenshot.shape}')
-
-    # # Display the result
-    # cv2.imshow('Screenshot Result', screenshot)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
-    # cv2.imwrite('screnshot_vanilla.jpg', screenshot)
-
+        wsop_start = (150, 650)
+        wsop_end = (1250, 800)
+        region_taken = [wsop_start[0], wsop_start[1], wsop_end[0]-wsop_start[0], wsop_end[1]-wsop_start[1]]
+        logger.info(f'Taking screenshot')
+        # screenshot_monitor = pyautogui.screenshot(region=region_taken)
+        screenshot_monitor = pyautogui.screenshot()
+        screenshot_monitor = cv2.cvtColor(np.array(screenshot_monitor), cv2.COLOR_BGR2GRAY)
+        cv2.imwrite('screenshot_monitor.jpg', screenshot_monitor)
+        screenshot = screenshot_monitor
     return screenshot
 
 
@@ -116,7 +132,7 @@ def focus_window(windowname):
 def set_up_for_auto():
     global start, size, GAME_REGION
     windowName = 'Tiny Tower'
-
+    # windowName = 'qemu-system-aarch64'
     focus_window(windowName)
     start, size = get_window_coord(windowName)
 
@@ -133,7 +149,7 @@ def add_suffix_to_filename(filename, suffix='_big'):
     return f"{base_name}{suffix}{extension}"
 
 
-def click_by_image_name(image_name, yes_click=True, yes_move=False):
+def click_by_image_name(image_name, yes_click=True, yes_move=False, tinytower_gamescreen=True):
     global start, size, GAME_REGION
 
     # Check game size
@@ -143,7 +159,7 @@ def click_by_image_name(image_name, yes_click=True, yes_move=False):
         image_name = add_suffix_to_filename(image_name, '_big')  # use image with _big
 
     # Capture a screenshot
-    screenshot = get_screenshot()
+    screenshot = get_screenshot(tinytower_gamescreen)
 
     # # Display the result
     # cv2.imshow('Screenshot Result', screenshot)
@@ -178,7 +194,9 @@ def click_by_image_name(image_name, yes_click=True, yes_move=False):
     elif 'vip' in image_name:
         threshold = 0.92
     elif 'techtree' in image_name:
-        threshold = 0.8
+        threshold = 0.7
+    elif 'buildfloor' in image_name:
+        threshold = 0.7
 
     logger.info(f'Threshold is {threshold} for template {image_name}')
     # Find the locations where the result is above the threshold
@@ -250,3 +268,24 @@ def click_by_image_name(image_name, yes_click=True, yes_move=False):
         time.sleep(0.5)
 
     return is_matched, center_x, center_y, num_matches
+
+
+'''
+NOTES:
+adb shell wm size => Physical size: 1080x2220
+adb shell getevent -lt /dev/input/event1
+adb shell input tap 74 1992 => lift
+
+"So it seems like you need to divide your axis value from evtest by 65535 and multiply it by width or height of device
+(in pixels). For example, if you get X=30000, and width of your LCD panel is 1080 pixels, you need to do:
+
+X = round((30000 / 65535) * 1080) = 494 pixels"
+adb shell input tap 148 1992 => second from left
+adb shell input tap 74 1992 => first from left
+adb shell input tap 64 670 => 5minbux
+adb shell input tap 256 670 => 5minbux_second
+adb shell input tap 708 1356 => 5minbux_collect
+adb shell input tap 564 1362 => center (awesome, continue)
+
+result = subprocess.run('adb shell input tap 74 1992', shell=True)
+'''

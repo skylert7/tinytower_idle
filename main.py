@@ -12,6 +12,7 @@ def parachuteClick():
         # Check for continue
         click_by_image_name('continue.png')
     # click_by_image_name('nothanks_parachute.png')
+    click_by_image_name('parachute_continue.png')
 
 
 def restock():
@@ -73,6 +74,8 @@ def check_lift_and_click():
     # is_matched, x2_gift, y2_gift = click_by_image_name('liftready.png', yes_click=False)
     # if abs(x1_gift - x2_gift) < 30 and abs(y1_gift - y2_gift) < 30:
     #     click_by_image_name('liftready.png')
+    click_by_image_name('continue.png')
+    click_by_image_name('awesome.png')
 
 
 def check_techtree():
@@ -118,10 +121,12 @@ def click_awesome():
 def build_new_floor():
     # TODO: read current money and see if it's enough to build floor - right now pacing it 30 mins between
     # TODO: building floor
+    logger.info('Start build_new_floor')
     go_to_building_top()
     click_by_image_name('buildfloor.png')
     click_by_image_name('buildfloor_yes.png')
     click_by_image_name('buildfloor_continue.png')
+    logger.info('Finish build_new_floor')
 
 
 def run_job_at_specific_time(job_func, specific_time):
@@ -137,7 +142,7 @@ def mainloop(seconds_to_run):
 
     # Set up schedule tasks:
     schedule.every(21).minutes.do(get_techtree_point)
-    schedule.every(31).minutes.do(build_new_floor)
+    schedule.every(10).minutes.do(build_new_floor)
     schedule.every(61).minutes.do(set_up_for_auto)
 
     # Set the specific time in HH:MM format (00:27)
@@ -165,11 +170,11 @@ def mainloop(seconds_to_run):
 
 def main():
     logger.debug(f'start is {start}, size is {size}')
-    # parachuteClick()
+    #parachuteClick()
     check_and_collect_5minbux()
     check_lift_and_click()
-    # go_to_building_top()
-    # parachuteClick()
+    #go_to_building_top()
+    #parachuteClick()
     back_to_mainscreen()
 
 

@@ -189,7 +189,12 @@ def rebuild():
     if result_matching:
         x, y = result_matching[0], result_matching[1]
         run_adb_command_subprocess(f'adb shell input tap {x} {y}')
-
+    
+    # Build ten floors after rebuilding
+    print(f'{get_time()}: Building ten floors:')
+    for i in range(10):
+        buildfloor()
+        time.sleep(0.5)        
     print(f'{get_time()}: Finish rebuilding')
 
 
